@@ -85,8 +85,9 @@ const FirstPage = ({ onNavigate }) => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 p-4">
             <div className="max-w-4xl mx-auto">
-                <h1 className="text-4xl font-bold text-center mb-8 text-gray-800">
-                    📸 SnapSouls by vandan
+                <h1 className="text-center mb-8 text-gray-800">
+                    <span className="block text-4xl font-serif font-bold">📸 SnapSouls</span>
+                    <span className="block text-2xl font-light font-medium italic">~by vandan</span>
                 </h1>
 
                 {/* Carousel Section */}
@@ -141,8 +142,17 @@ const FirstPage = ({ onNavigate }) => {
                         className="bg-gradient-to-br from-pink-400 to-red-400 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
                     >
                         <Heart className="w-12 h-12 mx-auto mb-4" />
-                        <h3 className="text-xl font-bold mb-2">Love SanpSoul</h3>
+                        <h3 className="text-xl font-bold mb-2">Love SnapSoul</h3>
                         <p className="text-sm opacity-90">Perfect for couples & special moments</p>
+                    </button>
+
+                    <button
+                        onClick={() => onNavigate('aesthetic')}
+                        className="bg-gradient-to-br from-purple-400 to-pink-400 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                    >
+                        <Camera className="w-12 h-12 mx-auto mb-4" />
+                        <h3 className="text-xl font-bold mb-2">Aesthetic SnapSoul</h3>
+                        <p className="text-sm opacity-90">Solo shots with vintage vibes</p>
                     </button>
 
                     <button
@@ -152,15 +162,6 @@ const FirstPage = ({ onNavigate }) => {
                         <Grid3x3 className="w-12 h-12 mx-auto mb-4" />
                         <h3 className="text-xl font-bold mb-2">Multi-Photo</h3>
                         <p className="text-sm opacity-90">Collage of your favorite memories</p>
-                    </button>
-
-                    <button
-                        onClick={() => onNavigate('aesthetic')}
-                        className="bg-gradient-to-br from-purple-400 to-pink-400 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-                    >
-                        <Camera className="w-12 h-12 mx-auto mb-4" />
-                        <h3 className="text-xl font-bold mb-2">Aesthetic SanpSoul</h3>
-                        <p className="text-sm opacity-90">Solo shots with vintage vibes</p>
                     </button>
 
                 </div>
