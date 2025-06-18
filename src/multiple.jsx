@@ -73,6 +73,7 @@ const Multiple = ({ onBack }) => {
             x = photoArea.x + index * (width + 5);
             y = photoArea.y + 5;
           } else {
+            // For other layouts, use grid as fallback
             const cellWidth = photoArea.width / 2;
             const cellHeight = photoArea.height / 2;
             x = photoArea.x + (index % 2) * cellWidth + 5;

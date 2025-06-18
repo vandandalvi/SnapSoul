@@ -34,7 +34,7 @@ const Aesthetic = ({ onBack }) => {
     try {
       const dataUrl = await toPng(polaroidRef.current, {
         quality: 1,
-        pixelRatio: 2, // For higher resolution
+        pixelRatio: 2, 
         backgroundColor: '#ffffff',
       });
 
