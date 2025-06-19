@@ -185,7 +185,7 @@ export default function Love({ onBack }) {
                   <input type="file" accept="image/*" onChange={(e) => handleImageChange(e, null, `image${num}`)} 
                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                   <div className="w-full p-3 border-2 border-dashed border-pink-300 rounded-xl text-center text-pink-600 bg-gradient-to-br from-pink-50 to-rose-50 hover:border-pink-400 hover:bg-pink-100 transition-all cursor-pointer text-xs">
-                    💕 Memory {num}
+                    💕 Upload Love Bird {num}
                   </div>
                 </div>
               ))}
