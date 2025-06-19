@@ -205,7 +205,7 @@ export default function Love({ onBack }) {
           )}
           <button onClick={downloadImage} 
                   className="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white py-3 rounded-xl hover:from-pink-600 hover:to-rose-600 transition-all font-medium shadow-lg">
-            💕 Download Polaroid
+            💕 Download SnapSoul
           </button>
         </div>
       </div>
