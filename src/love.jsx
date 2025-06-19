@@ -136,13 +136,13 @@ export default function Love({ onBack }) {
         {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent mb-2">
-            💖 Love Polaroids 💖
+            💖 Love SnapSoul 💖
           </h1>
           <p className="text-pink-600 text-sm">Capture your precious moments</p>
         </div>
 
         <label className="block mb-2 text-sm font-medium text-pink-700 flex items-center gap-1">
-          🌹 Select Polaroid Type:
+          🌹 Select SnapSoul Type:
         </label>
         <select value={type} onChange={(e) => setType(e.target.value)} 
                 className="mb-6 w-full p-3 border-2 border-pink-200 rounded-xl text-sm bg-white/80 focus:border-pink-400 focus:outline-none transition-colors">
