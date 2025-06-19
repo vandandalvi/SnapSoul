@@ -339,7 +339,7 @@ const PolaroidPhotoBooth = ({ onBack }) => {
 
             {/* Enhanced Polaroid Preview */}
             <div className="bg-pink rounded-2xl p-6 shadow-lg">
-              <h2 className="text-xl font-semibold mb-4">Polaroid Strip Preview</h2>
+              <h2 className="text-xl font-semibold mb-4">Strip Preview</h2>
               <div className="flex justify-center">
                 <div className="bg-white p-6 rounded-lg shadow-xl border border-gray-200" style={{ width: '200px', height: '520px' }}>
                   <div className="h-full flex flex-col bg-white">
