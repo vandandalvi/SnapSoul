@@ -1,420 +1,424 @@
-import React, { useState, useRef } from 'react';
-import { Download, ArrowLeft, Camera, Upload, X } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import Cropper from 'react-easy-crop';
+import { Camera, Upload, Download, Trash2, RotateCcw, Heart, Smile, Star, Music, ArrowLeft } from 'lucide-react';
 
-const Multiple = ({ onBack }) => {
-  const [caption, setCaption] = useState("Collected memories 📸");
-  const [date, setDate] = useState("June 18, 2025");
-  const [layout, setLayout] = useState("grid");
-  const [uploadedImages, setUploadedImages] = useState([]);
-  const fileInputRef = useRef(null);
-  const polaroidRef = useRef(null);
+// Updated crop utility function
+function getCroppedImg(imageSrc, pixelCrop) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
 
-  const handleDownload = async () => {
-    try {
-      // Create a canvas to render the polaroid
+    image.onload = () => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      
-      // Set canvas size (adjust as needed)
-      canvas.width = 400;
-      canvas.height = 500;
-      
-      // Fill white background
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      // Add a border
-      ctx.strokeStyle = '#e5e7eb';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
-      
-      // Draw photos based on layout
-      await drawPhotosOnCanvas(ctx, canvas.width, canvas.height);
-      
-      // Add text
-      ctx.fillStyle = '#374151';
-      ctx.font = '16px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(caption, canvas.width / 2, canvas.height - 60);
-      
-      ctx.fillStyle = '#6b7280';
-      ctx.font = '12px Arial';
-      ctx.fillText(date, canvas.width / 2, canvas.height - 30);
-      
-      // Download the canvas as image
-      const link = document.createElement('a');
-      link.download = `polaroid-collection-${Date.now()}.png`;
-      link.href = canvas.toDataURL();
-      link.click();
-    } catch (error) {
-      alert("Download feature needs additional setup. For now, you can screenshot the polaroid!");
-    }
-  };
 
-  const drawPhotosOnCanvas = async (ctx, canvasWidth, canvasHeight) => {
-    const photoArea = { x: 30, y: 30, width: canvasWidth - 60, height: canvasHeight - 140 };
-    
-    const promises = uploadedImages.slice(0, 4).map((img, index) => {
-      return new Promise((resolve) => {
-        const image = new Image();
-        image.onload = () => {
-          let x, y, width, height;
-          
-          if (layout === 'grid') {
-            const cellWidth = photoArea.width / 2;
-            const cellHeight = photoArea.height / 2;
-            x = photoArea.x + (index % 2) * cellWidth + 5;
-            y = photoArea.y + Math.floor(index / 2) * cellHeight + 5;
-            width = cellWidth - 10;
-            height = cellHeight - 10;
-          } else if (layout === 'strip') {
-            width = photoArea.width / 4 - 5;
-            height = photoArea.height - 10;
-            x = photoArea.x + index * (width + 5);
-            y = photoArea.y + 5;
-          } else {
-            // For other layouts, use grid as fallback
-            const cellWidth = photoArea.width / 2;
-            const cellHeight = photoArea.height / 2;
-            x = photoArea.x + (index % 2) * cellWidth + 5;
-            y = photoArea.y + Math.floor(index / 2) * cellHeight + 5;
-            width = cellWidth - 10;
-            height = cellHeight - 10;
+      canvas.width = pixelCrop.width;
+      canvas.height = pixelCrop.height;
+
+      ctx.drawImage(
+        image,
+        pixelCrop.x,
+        pixelCrop.y,
+        pixelCrop.width,
+        pixelCrop.height,
+        0,
+        0,
+        pixelCrop.width,
+        pixelCrop.height
+      );
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error('Canvas is empty'));
+            return;
           }
-          
-          ctx.drawImage(image, x, y, width, height);
-          resolve();
-        };
-        image.src = img;
-      });
-    });
-    
-    await Promise.all(promises);
+          const fileUrl = URL.createObjectURL(blob);
+          resolve(fileUrl);
+        },
+        'image/jpeg',
+        0.9
+      );
+    };
+
+    image.onerror = () => reject(new Error('Failed to load image'));
+    image.src = imageSrc;
+  });
+}
+
+const PolaroidPhotoBooth = ({ onBack }) => {
+  const [images, setImages] = useState([]);
+  const [currentImage, setCurrentImage] = useState(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [showCropper, setShowCropper] = useState(false);
+  const [customText, setCustomText] = useState('LOVE');
+  const [selectedIcon, setSelectedIcon] = useState('heart');
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const icons = {
+    heart: <Heart className="w-3 h-3" />,
+    smile: <Smile className="w-3 h-3" />,
+    star: <Star className="w-3 h-3" />,
+    music: <Music className="w-3 h-3" />
   };
 
   const handleFileUpload = (event) => {
-    const files = Array.from(event.target.files);
-    
-    files.forEach((file) => {
-      if (file.type.startsWith('image/') && uploadedImages.length < 6) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setUploadedImages(prev => [...prev, e.target.result]);
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-  };
-
-  const removeImage = (index) => {
-    setUploadedImages(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const layouts = [
-    { id: 'grid', name: '2x2 Grid', description: 'Classic square grid layout' },
-    { id: 'scattered', name: 'Scattered', description: 'Randomly positioned photos' },
-    { id: 'strip', name: 'Photo Strip', description: 'Horizontal strip layout' },
-    { id: 'cascade', name: 'Cascade', description: 'Overlapping cascade effect' },
-    { id: 'circle', name: 'Circle', description: 'Arranged in a circular pattern' },
-    { id: 'diagonal', name: 'Diagonal', description: 'Diagonal arrangement' }
-  ];
-
-  const renderPhotoLayout = () => {
-    const photoSlots = layout === 'strip' ? 4 : layout === 'circle' ? 5 : 4;
-    
-    if (layout === 'grid') {
-      return (
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="bg-gray-200 aspect-square flex items-center justify-center text-gray-500 text-xs border border-blue-200 overflow-hidden">
-              {uploadedImages[index] ? (
-                <img src={uploadedImages[index]} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
-              ) : (
-                <div className="text-center">
-                  <Camera className="w-6 h-6 mx-auto mb-1 text-blue-300" />
-                  <p>Photo {index + 1}</p>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      );
-    } else if (layout === 'scattered') {
-      const positions = [
-        { top: '8px', left: '8px', width: '64px', height: '64px', rotate: '3deg' },
-        { top: '32px', right: '16px', width: '80px', height: '64px', rotate: '-2deg' },
-        { bottom: '24px', left: '32px', width: '72px', height: '72px', rotate: '6deg' },
-        { bottom: '8px', right: '8px', width: '64px', height: '80px', rotate: '-12deg' }
-      ];
-      
-      return (
-        <div className="relative mb-4 h-48 bg-gray-100 border border-blue-200">
-          {positions.map((pos, index) => (
-            <div
-              key={index}
-              className="absolute bg-gray-200 border border-blue-200 flex items-center justify-center text-xs overflow-hidden"
-              style={{
-                ...pos,
-                transform: `rotate(${pos.rotate})`
-              }}
-            >
-              {uploadedImages[index] ? (
-                <img src={uploadedImages[index]} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
-              ) : (
-                <Camera className="w-4 h-4 text-blue-300" />
-              )}
-            </div>
-          ))}
-        </div>
-      );
-    } else if (layout === 'strip') {
-      return (
-        <div className="flex space-x-1 mb-4">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="bg-gray-200 w-full aspect-[3/4] flex items-center justify-center text-gray-500 text-xs border border-blue-200 overflow-hidden">
-              {uploadedImages[index] ? (
-                <img src={uploadedImages[index]} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
-              ) : (
-                <div className="text-center">
-                  <Camera className="w-4 h-4 mx-auto mb-1 text-blue-300" />
-                  <p>{index + 1}</p>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      );
-    } else if (layout === 'cascade') {
-      return (
-        <div className="relative mb-4 h-48">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div
-              key={index}
-              className="absolute bg-gray-200 border border-blue-200 flex items-center justify-center text-xs overflow-hidden"
-              style={{
-                width: '120px',
-                height: '90px',
-                left: `${index * 15}px`,
-                top: `${index * 12}px`,
-                zIndex: 4 - index,
-                transform: `rotate(${index * 2 - 3}deg)`
-              }}
-            >
-              {uploadedImages[index] ? (
-                <img src={uploadedImages[index]} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
-              ) : (
-                <div className="text-center">
-                  <Camera className="w-4 h-4 mx-auto mb-1 text-blue-300" />
-                  <p>{index + 1}</p>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      );
-    } else if (layout === 'circle') {
-      const radius = 70;
-      const centerX = 120;
-      const centerY = 96;
-      
-      return (
-        <div className="relative mb-4 h-48 bg-gray-50 border border-blue-200">
-          {Array.from({ length: 5 }).map((_, index) => {
-            const angle = (index * 2 * Math.PI) / 5 - Math.PI / 2;
-            const x = centerX + radius * Math.cos(angle) - 30;
-            const y = centerY + radius * Math.sin(angle) - 30;
-            
-            return (
-              <div
-                key={index}
-                className="absolute bg-gray-200 border border-blue-200 flex items-center justify-center text-xs overflow-hidden"
-                style={{
-                  width: '60px',
-                  height: '60px',
-                  left: `${x}px`,
-                  top: `${y}px`,
-                  transform: `rotate(${index * 15}deg)`
-                }}
-              >
-                {uploadedImages[index] ? (
-                  <img src={uploadedImages[index]} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
-                ) : (
-                  <Camera className="w-3 h-3 text-blue-300" />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      );
-    } else if (layout === 'diagonal') {
-      return (
-        <div className="relative mb-4 h-48">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div
-              key={index}
-              className="absolute bg-gray-200 border border-blue-200 flex items-center justify-center text-xs overflow-hidden"
-              style={{
-                width: '80px',
-                height: '60px',
-                left: `${20 + index * 40}px`,
-                top: `${20 + index * 25}px`,
-                transform: `rotate(${-15 + index * 10}deg)`
-              }}
-            >
-              {uploadedImages[index] ? (
-                <img src={uploadedImages[index]} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
-              ) : (
-                <div className="text-center">
-                  <Camera className="w-4 h-4 mx-auto mb-1 text-blue-300" />
-                  <p>{index + 1}</p>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      );
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setCurrentImage(e.target.result);
+        setShowCropper(true);
+        setCrop({ x: 0, y: 0 });
+        setZoom(1);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
+  const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  const handleCropImage = async () => {
+    if (!croppedAreaPixels || !currentImage) return;
+
+    try {
+      const croppedImage = await getCroppedImg(currentImage, croppedAreaPixels);
+      setImages(prev => [...prev, croppedImage]);
+      setShowCropper(false);
+      setCurrentImage(null);
+    } catch (e) {
+      console.error('Error cropping image:', e);
+    }
+  };
+
+  const cancelCrop = () => {
+    setShowCropper(false);
+    setCurrentImage(null);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+  };
+
+  const removeImage = (index) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const clearAll = () => {
+    setImages([]);
+  };
+  const downloadPolaroid = async () => {
+    if (images.length === 0) return;
+
+    setIsGenerating(true);
+
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const polaroidWidth = 200;
+      const polaroidHeight = 520;
+      const imageBoxSize = 120;
+      const spacing = 10;
+      const bottomTextArea = 100;
+      const topPadding = 20;
+      const icon = '📸'; // Fallback for selectedIcon
+
+      canvas.width = polaroidWidth;
+      canvas.height = polaroidHeight;
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, polaroidWidth, polaroidHeight);
+
+      const imagePromises = images.slice(0, 3).map((imageSrc, index) => {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            const x = (polaroidWidth - imageBoxSize) / 2;
+            const y = topPadding + index * (imageBoxSize + spacing);
+
+            ctx.fillStyle = '#f8f8f8';
+            ctx.fillRect(x, y, imageBoxSize, imageBoxSize);
+
+            ctx.drawImage(img, x, y, imageBoxSize, imageBoxSize);
+
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x, y, imageBoxSize, imageBoxSize);
+
+            resolve();
+          };
+          img.onerror = () => resolve();
+          img.src = imageSrc;
+        });
+      });
+
+      await Promise.all(imagePromises);
+
+      const textY = polaroidHeight - bottomTextArea + 30;
+
+      ctx.fillStyle = '#333';
+      ctx.font = 'bold 14px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${icon} ${customText} ${icon}`, polaroidWidth / 2, textY);
+
+      ctx.fillStyle = '#888';
+      ctx.font = '12px Arial';
+      ctx.fillText('● ● ● ● ● ● ● ● ● ●', polaroidWidth / 2, textY + 25);
+
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `polaroid-strip-${Date.now()}.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        }
+        setIsGenerating(false);
+      }, 'image/png');
+
+    } catch (error) {
+      console.error('Error generating polaroid:', error);
+      setIsGenerating(false);
+    }
+  };
+
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4">
+
+    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100 p-4">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center mb-6">
+        <div className="text-center mb-8 relative">
           <button
             onClick={onBack}
-            className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
+            className="absolute left-0 top-0 flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow text-gray-600 hover:text-gray-800"
           >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Back to Templates</span>
+            <ArrowLeft className="w-4 h-4" />
+            Back
           </button>
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">SnapSoul Photo Booth</h1>
+          <p className="text-gray-600">Create beautiful SnapSoul strips with your photos</p>
         </div>
-        
-        <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">
-          📸 Multi-Photo SnapSoul
-        </h2>
-        
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Upload Section */}
+
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Left Panel - Controls */}
           <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-700 mb-4">Upload Photos</h3>
-              <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center">
+            {/* Upload Section */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg">
+              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <Camera className="w-5 h-5" />
+                Add Photos
+              </h2>
+              <label className="block w-full p-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-pink-400 transition-colors cursor-pointer bg-gray-50 hover:bg-pink-50">
+                <div className="text-center">
+                  <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                  <span className="text-gray-600">Click to upload an image</span>
+                  <div className="text-sm text-gray-500 mt-1">JPG, PNG up to 10MB</div>
+                </div>
                 <input
                   type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  multiple
                   accept="image/*"
+                  onChange={handleFileUpload}
                   className="hidden"
                 />
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full flex flex-col items-center space-y-2 text-blue-600 hover:text-blue-700"
-                >
-                  <Upload className="w-8 h-8" />
-                  <span className="text-sm font-medium">Click to upload photos</span>
-                  <span className="text-xs text-gray-500">Up to 6 images</span>
-                </button>
-              </div>
-              
-              {uploadedImages.length > 0 && (
-                <div className="mt-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">
-                    Uploaded Photos ({uploadedImages.length}/6)
-                  </h4>
-                  <div className="grid grid-cols-3 gap-2">
-                    {uploadedImages.map((img, index) => (
-                      <div key={index} className="relative">
-                        <img
-                          src={img}
-                          alt={`Upload ${index + 1}`}
-                          className="w-full h-16 object-cover rounded border"
-                        />
-                        <button
-                          onClick={() => removeImage(index)}
-                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
+              </label>
+            </div>
+
+            {/* Customization */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg">
+              <h2 className="text-xl font-semibold mb-4">Customize Strip</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Bottom Text</label>
+                  <input
+                    type="text"
+                    value={customText}
+                    onChange={(e) => setCustomText(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                    placeholder="Enter custom text"
+                    maxLength="20"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Decoration</label>
+                  <div className="flex gap-2">
+                    {Object.entries(icons).map(([key, icon]) => (
+                      <button
+                        key={key}
+                        onClick={() => setSelectedIcon(key)}
+                        className={`p-3 rounded-lg border-2 transition-colors ${selectedIcon === key
+                            ? 'border-pink-500 bg-pink-50'
+                            : 'border-gray-200 hover:border-pink-300'
+                          }`}
+                      >
+                        {icon}
+                      </button>
                     ))}
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
-          
-          {/* Polaroid Preview */}
-          <div className="flex justify-center">
-            <div ref={polaroidRef} className="multi-polaroid-frame bg-white p-6 shadow-2xl rounded-sm max-w-sm w-full">
-              {renderPhotoLayout()}
-              <div className="text-center pb-4">
-                <p className="text-gray-700 mb-2 text-base">
-                  {caption}
-                </p>
-                <p className="text-gray-500 text-sm">
-                  {date}
-                </p>
               </div>
             </div>
-          </div>
-          
-          {/* Editor Controls */}
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Layout Style
-              </label>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {layouts.map((layoutOption) => (
+
+            {/* Actions */}
+            {images.length > 0 && (
+              <div className="bg-white rounded-2xl p-6 shadow-lg">
+                <h2 className="text-xl font-semibold mb-4">Actions</h2>
+                <div className="flex gap-3">
                   <button
-                    key={layoutOption.id}
-                    onClick={() => setLayout(layoutOption.id)}
-                    className={`w-full p-3 rounded-lg border text-left transition-colors ${
-                      layout === layoutOption.id
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-gray-300 hover:border-blue-300'
-                    }`}
+                    onClick={downloadPolaroid}
+                    disabled={isGenerating}
+                    className="flex-1 bg-pink-500 text-white py-3 px-4 rounded-lg hover:bg-pink-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                   >
-                    <div className="font-medium">{layoutOption.name}</div>
-                    <div className="text-xs text-gray-500 mt-1">{layoutOption.description}</div>
+                    <Download className="w-4 h-4" />
+                    {isGenerating ? 'Generating...' : 'Download SnapSoul'}
                   </button>
-                ))}
+                  <button
+                    onClick={clearAll}
+                    className="flex-1 bg-gray-500 text-white py-3 px-4 rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    Clear All
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Panel - Preview */}
+          <div className="space-y-6">
+            {/* Cropper Modal */}
+            {showCropper && (
+              <div className="bg-white rounded-2xl p-6 shadow-lg">
+                <h2 className="text-xl font-semibold mb-4">Crop Your Photo</h2>
+                <div className="relative w-full h-80 bg-gray-100 rounded-lg overflow-hidden">
+                  <Cropper
+                    image={currentImage}
+                    crop={crop}
+                    zoom={zoom}
+                    aspect={1}
+                    onCropChange={setCrop}
+                    onCropComplete={onCropComplete}
+                    onZoomChange={setZoom}
+                    showGrid={false}
+                  />
+                </div>
+                <div className="mt-4">
+                  <label className="block text-sm font-medium mb-2">Zoom: {zoom.toFixed(1)}x</label>
+                  <input
+                    type="range"
+                    min={1}
+                    max={3}
+                    step={0.1}
+                    value={zoom}
+                    onChange={(e) => setZoom(parseFloat(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                </div>
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={handleCropImage}
+                    className="flex-1 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors font-medium"
+                  >
+                    Add to Strip
+                  </button>
+                  <button
+                    onClick={cancelCrop}
+                    className="flex-1 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Enhanced Polaroid Preview */}
+            <div className="bg-pink rounded-2xl p-6 shadow-lg">
+              <h2 className="text-xl font-semibold mb-4">Polaroid Strip Preview</h2>
+              <div className="flex justify-center">
+                <div className="bg-white p-6 rounded-lg shadow-xl border border-gray-200" style={{ width: '200px', height: '520px' }}>
+                  <div className="h-full flex flex-col bg-white">
+                    <div className="flex-1 space-y-3">
+                      {[...Array(3)].map((_, index) => (
+                        <div
+                          key={index}
+                          className="relative bg-gray-50 rounded border border-gray-200 overflow-hidden"
+                          style={{ height: '120px', width: '120px', margin: '0 auto' }}
+                        >
+                          {images[index] ? (
+                            <>
+                              <img
+                                src={images[index]}
+                                alt={`Photo ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                              <button
+                                onClick={() => removeImage(index)}
+                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors opacity-80 hover:opacity-100"
+                                style={{ width: '18px', height: '18px' }}
+                              >
+                                <Trash2 className="w-2 h-2" />
+                              </button>
+                            </>
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-300">
+                              <Camera className="w-6 h-6" />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-5 text-center">
+                      <div className="flex items-center justify-center gap-1 text-base font-bold text-gray-800">
+                        {icons[selectedIcon]}
+                        <span className="mx-2">{customText}</span>
+                        {icons[selectedIcon]}
+                      </div>
+                      <div className="mt-3 text-sm text-gray-400">
+                        {'● ● ● ● ● ● ● ● ● ●'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="text-center mt-4 text-sm text-gray-500">
+                Add {Math.max(0, 3 - images.length)} more photo{Math.max(0, 3 - images.length) !== 1 ? 's' : ''}
               </div>
             </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Collection Caption
-              </label>
-              <textarea
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                rows="3"
-                placeholder="Describe your photo collection..."
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Date
-              </label>
-              <input
-                type="text"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            
-            <button
-              onClick={handleDownload}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 px-6 rounded-lg hover:from-blue-600 hover:to-purple-600 transition-colors flex items-center justify-center space-x-2"
-            >
-              <Download className="w-5 h-5" />
-              <span>Download Your Snap</span>
-            </button>
+
+            {/* Photo Grid */}
+            {images.length > 0 && (
+              <div className="bg-white rounded-2xl p-6 shadow-lg">
+                <h2 className="text-xl font-semibold mb-4">
+                  Your Photos ({images.length}/3)
+                </h2>
+                <div className="grid grid-cols-2 gap-3">
+                  {images.map((image, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={image}
+                        alt={`Photo ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-lg border-2 border-gray-200 group-hover:border-pink-300 transition-colors aspect-square"
+                      />
+                      <button
+                        onClick={() => removeImage(index)}
+                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100 shadow-lg"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                      <div className="absolute bottom-1 left-1 bg-black bg-opacity-50 text-white text-xs px-1 rounded">
+                        {index + 1}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -422,4 +426,4 @@ const Multiple = ({ onBack }) => {
   );
 };
 
-export default Multiple;
+export default PolaroidPhotoBooth;

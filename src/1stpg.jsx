@@ -160,7 +160,7 @@ const FirstPage = ({ onNavigate }) => {
                         className="bg-gradient-to-br from-blue-400 to-purple-400 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
                     >
                         <Grid3x3 className="w-12 h-12 mx-auto mb-4" />
-                        <h3 className="text-xl font-bold mb-2">Multi-Photo</h3>
+                        <h3 className="text-xl font-bold mb-2">SnapSoul Photo Booth</h3>
                         <p className="text-sm opacity-90">Collage of your favorite memories</p>
                     </button>
 
