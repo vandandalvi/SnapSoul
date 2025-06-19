@@ -5,7 +5,7 @@ import { ArrowLeft } from 'lucide-react';
 import getCroppedImg from './utils/cropImage';
 
 export default function Love({ onBack }) {
-  const [type, setType] = useState('double');
+  const [type, setType] = useState('');
   const [caption, setCaption] = useState("Together moments. Forever memories.");
   const [date, setDate] = useState("18.06.2025");
   const [captionTopRight, setCaptionTopRight] = useState("Love Side by Side");
