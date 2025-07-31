@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, Heart, Camera, Grid3x3 } from 'lucide-react'
 import './index.css'
 import Love from './love';
 import Aesthetic from './aesthetic';
-import vandan from './assets/vandan.png'
+import vandan from './assets/lov.jpg'
 
 const FirstPage = ({ onNavigate }) => {
     const [currentSlide, setCurrentSlide] = useState(0);
@@ -20,6 +20,14 @@ const FirstPage = ({ onNavigate }) => {
         },
         {
             id: 2,
+            type: 'Aesthetic',
+            caption: 'My LOVE✨',
+            timestamp: 'March 23, 2025',
+            photo: vandan,
+            layout: 'single'
+        },
+        {
+            id: 3,
             type: 'Multi',
             caption: 'Best Duo 📸',
             timestamp: 'Feb 10, 2025',
@@ -28,15 +36,7 @@ const FirstPage = ({ onNavigate }) => {
                 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=400&fit=crop'
             ],
             layout: 'couple'
-        },
-        {
-            id: 3,
-            type: 'Aesthetic',
-            caption: 'Golden hour vibes ✨',
-            timestamp: 'March 23, 2025',
-            photo: vandan,
-            layout: 'single'
-        },
+        }, 
     ];
 
     const nextSlide = () => {
