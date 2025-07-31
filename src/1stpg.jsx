@@ -12,18 +12,18 @@ const FirstPage = ({ onNavigate }) => {
     const samplePolaroids = [
         {
             id: 1,
-            type: 'Love',
-            caption: 'Our first date ❤️',
-            timestamp: 'June 4, 2025',
-            photo: 'https://www.allkpop.com/upload/2025/03/content/140930/1741959011-0001025361-005-20250314152417768.jpg',
-            layout: 'single'
-        },
-        {
-            id: 2,
             type: 'Aesthetic',
             caption: 'My LOVE 💕',
             timestamp: 'March 23, 2025',
             photo: vandan,
+            layout: 'single'
+        }, 
+        {
+            id: 2,
+            type: 'Love',
+            caption: 'Our first date ❤️',
+            timestamp: 'June 4, 2025',
+            photo: 'https://www.allkpop.com/upload/2025/03/content/140930/1741959011-0001025361-005-20250314152417768.jpg',
             layout: 'single'
         },
         {
