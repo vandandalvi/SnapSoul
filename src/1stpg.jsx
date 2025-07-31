@@ -14,7 +14,7 @@ const FirstPage = ({ onNavigate }) => {
             id: 1,
             type: 'Aesthetic',
             caption: 'My LOVE 💕',
-            timestamp: 'March 23, 2025',
+            timestamp: 'April 22, 2025',
             photo: vandan,
             layout: 'single'
         }, 
