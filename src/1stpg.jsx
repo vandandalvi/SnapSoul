@@ -45,7 +45,7 @@ const FirstPage = ({ onNavigate }) => {
     useEffect(() => {
         const interval = setInterval(() => {
             setCurrentSlide((prev) => (prev + 1) % samplePolaroids.length);
-        }, 3000); // 3 seconds
+        }, 5000); // 5 seconds
 
         return () => clearInterval(interval);
     }, [samplePolaroids.length]);
