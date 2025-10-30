@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, Heart, Camera, Grid3x3 } from 'lucide-react'
 import './index.css'
 import Love from './love';
 import Aesthetic from './aesthetic';
-import vandan from './assets/Lovq.jpg'
+import vandan from './assets/Lovq.png'
 
 const FirstPage = ({ onNavigate }) => {
     const [currentSlide, setCurrentSlide] = useState(0);
