@@ -87,7 +87,7 @@ const FirstPage = ({ onNavigate }) => {
             <div className="max-w-4xl mx-auto">
                 <h1 className="text-center mb-8 text-gray-800">
                     <span className="block text-4xl font-serif font-bold">📸 SnapSouls</span>
-                    <span className="block text-2xl font-light font-medium italic">~by vandan'x</span>
+                    <span className="block text-2xl font-light font-medium italic">~by vandan</span>
                 </h1>
 
                 {/* Carousel Section */}
