@@ -90,7 +90,7 @@ const FirstPage = ({ onNavigate }) => {
                         📸 SnapSouls
                     </span>
                     <span className="block text-xl sm:text-2xl md:text-3xl font-light italic text-gray-600 tracking-wide">
-                        ~by vandan'x
+                        ~by vandan
                     </span>
                 </h1>
 
