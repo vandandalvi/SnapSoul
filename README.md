@@ -1,5 +1,6 @@
 # SNAPSOUL ~by vandan
 ### Polaroid type easy to use web app
+#### Click ur Polaroid phto now 
 
 ## React + Vite
 
